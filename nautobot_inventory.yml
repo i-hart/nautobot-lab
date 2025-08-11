@@ -1,4 +1,4 @@
 plugin: networktocode.nautobot.inventory
-api_endpoint: https://nautbot-lab.corp.stonex.com
-token: fe194f2bf9a57149425232f6d13606352aa9c12d
+api_endpoint: <<NAUTOBOT_API_URL>>
+token: <NAUTOBOT_API_TOKEN>
 validate_certs: true
