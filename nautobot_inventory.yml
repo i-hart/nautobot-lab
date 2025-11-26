@@ -1,7 +1,7 @@
 ---
 plugin: networktocode.nautobot.inventory
-api_endpoint: "{{ lookup('env', 'NAUTOBOT_URL') }}"
-token: "{{ lookup('env', 'NAUTOBOT_TOKEN') }}"
+api_endpoint: "https://nautobot-lab.corp.stonex.com"
+token: "1abe29726c605c16afe90fc45d46330688513fdb"
 validate_certs: true
 
 # Query devices and virtual machines
