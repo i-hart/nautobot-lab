@@ -1,7 +1,7 @@
 ---
 plugin: networktocode.nautobot.inventory
-api_endpoint: "{{ nautobot_api_url }}"
-token: "{{ nautobot_api_token }}"
+api_endpoint: !env NAUTOBOT_URL
+token: !env NAUTOBOT_TOKEN
 validate_certs: true
 
 # Query devices and virtual machines
