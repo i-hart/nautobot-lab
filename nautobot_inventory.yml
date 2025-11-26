@@ -1,9 +1,9 @@
+---
 plugin: networktocode.nautobot.inventory
-#api_endpoint: <<NAUTOBOT_API_URL>>
-#token: <NAUTOBOT_API_TOKEN>
+api_endpoint: "{{ lookup('env', 'NAUTOBOT_URL') }}"
+token: "{{ lookup('env', 'NAUTOBOT_TOKEN') }}"
 validate_certs: true
 
-# Query devices and virtual machines
 query:
   devices:
     name:
@@ -38,7 +38,6 @@ query:
     tags:
       name:
 
-# Group devices dynamically
 group_by:
   - device_role.slug
   - site.slug
@@ -46,12 +45,6 @@ group_by:
   - status.value
   - tags.name
 
-# Set ansible_host to primary IP
 compose:
   ansible_host: primary_ip4.host | default(primary_ip6.host)
   ansible_network_os: platform.napalm_driver
-
-# Additional filtering (optional)
-# query_filters:
-#   - role: network-switch
-#   - status: active
