@@ -1,6 +1,6 @@
 plugin: networktocode.nautobot.inventory
-api_endpoint: <<NAUTOBOT_API_URL>>
-token: <NAUTOBOT_API_TOKEN>
+#api_endpoint: <<NAUTOBOT_API_URL>>
+#token: <NAUTOBOT_API_TOKEN>
 validate_certs: true
 
 # Query devices and virtual machines
