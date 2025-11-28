@@ -7,16 +7,42 @@ query:
     name:
     primary_ip4:
       host:
-    device_role:
-      slug:
-    site:
-      slug:
     platform:
+      name:
+      napalm_driver:
+    device_role:
+      name:
+      slug:
+    location_type:
+      name:
+      slug:
+    location:
+      name:
+    tenant:
+      name:
+    tags:
+      name:
+    status:
+      value:
+    serial:
+  virtual_machines:
+    name:
+    primary_ip4:
+      host:
+    platform:
+      name:
+    tenant:
+      name:
+    tags:
       name:
 
 group_by:
-  - device_roles
-  - platforms
+  - device_role.slug
+  - location.slug
+  - platform.name
+  - status.value
+  - tags.name
 
 compose:
-  ansible_host: primary_ip4.host
+  ansible_host: primary_ip4.host | default(primary_ip6.host)
+  ansible_network_os: platform.napalm_driver
