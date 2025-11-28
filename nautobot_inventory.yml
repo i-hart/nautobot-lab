@@ -4,7 +4,6 @@ api_endpoint: !env NAUTOBOT_URL
 token: !env NAUTOBOT_TOKEN
 validate_certs: true
 
-# Query devices and virtual machines
 query:
   devices:
     name:
@@ -19,36 +18,14 @@ query:
     site:
       name:
       slug:
-    location:
-      name:
-    tenant:
-      name:
-    tags:
-      name:
     status:
       value:
-    serial:
-  virtual_machines:
-    name:
-    primary_ip4:
-      host:
-    platform:
-      name:
-    tenant:
-      name:
-    tags:
-      name:
 
-# Group devices dynamically - USE VALID VALUES ONLY
 group_by:
   - device_roles
   - platforms
-  - locations
-  - tenants
-  - tags
   - status
 
-# Set ansible_host to primary IP
 compose:
   ansible_host: primary_ip4.host | default(primary_ip6.host)
   ansible_network_os: platform.napalm_driver
