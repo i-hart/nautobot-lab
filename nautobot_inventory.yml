@@ -1,26 +1,4 @@
 ---
-- name: Interact with Nautobot API
-  hosts: localhost
-  gather_facts: false
-  tasks:
-    - name: Debug Nautobot URL
-      debug:
-        msg: "Connecting to Nautobot at {{ lookup('env', 'NAUTOBOT_URL') }}"
-
-    - name: Fetch data from Nautobot
-      uri:
-        url: "{{ lookup('env', 'NAUTOBOT_URL') }}/api/dcim/devices/"
-        method: GET
-        headers:
-          Authorization: "Token {{ lookup('env', 'NAUTOBOT_TOKEN') }}"
-          Accept: application/json
-      register: response
-
-    - name: Display response
-      debug:
-        var: response.json   
-
-        
 plugin: networktocode.nautobot.inventory
 api_endpoint: !env NAUTOBOT_URL
 token: !env NAUTOBOT_TOKEN
