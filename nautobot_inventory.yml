@@ -37,9 +37,10 @@ query:
       name:
 
 group_by:
-  - role.device_role
-  - location
-  - role.platform
+  - device_roles
+  - platforms
+  - locations
+  - tenants
   - status
   - tags
 
