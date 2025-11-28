@@ -37,11 +37,11 @@ query:
       name:
 
 group_by:
-  - device_role.slug
-  - location.slug
-  - platform.name
-  - status.value
-  - tags.name
+  - role.device_role
+  - location
+  - role.platform
+  - status
+  - tags
 
 compose:
   ansible_host: primary_ip4.host | default(primary_ip6.host)
