@@ -1,7 +1,5 @@
 ---
 plugin: networktocode.nautobot.inventory
-api_endpoint: !env NAUTOBOT_URL
-token: !env NAUTOBOT_TOKEN
 validate_certs: true
 
 query:
@@ -9,23 +7,16 @@ query:
     name:
     primary_ip4:
       host:
-    platform:
-      name:
-      napalm_driver:
     device_role:
-      name:
       slug:
     site:
-      name:
       slug:
-    status:
-      value:
+    platform:
+      name:
 
 group_by:
   - device_roles
   - platforms
-  - status
 
 compose:
-  ansible_host: primary_ip4.host | default(primary_ip6.host)
-  ansible_network_os: platform.napalm_driver
+  ansible_host: primary_ip4.host
