@@ -1,0 +1,22 @@
+{# ================================================================
+   Cisco ASA — Golden Config Entry Point
+
+   Context comes from GraphQL query: firewall_policy_context
+   Security context is resolved from the vsys model if multi-context.
+   ================================================================ #}
+
+{% set security_context = device.vsys.name | default("system") %}
+
+{% if security_context != "system" %}
+changeto context {{ security_context }}
+{% endif %}
+
+{% include "objects.j2" %}
+
+{% include "services.j2" %}
+
+{% include "acl.j2" %}
+
+{% if device.fw_nat_rules %}
+{% include "nat.j2" %}
+{% endif %}

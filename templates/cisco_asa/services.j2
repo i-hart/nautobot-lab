@@ -1,0 +1,21 @@
+{# ── Cisco ASA: Service Objects & Groups ──────────────────────── #}
+
+{% for svc in device.fw_service_objects %}
+object service {{ svc.name }}
+ service {{ svc.protocol | lower }} destination eq {{ svc.port }}
+{% if svc.description %}
+ description {{ svc.description }}
+{% endif %}
+!
+{% endfor %}
+
+{% for grp in device.fw_service_object_groups %}
+object-group service {{ grp.name }}
+{% if grp.description %}
+ description {{ grp.description }}
+{% endif %}
+{% for member in grp.service_objects %}
+ service-object object {{ member.name }}
+{% endfor %}
+!
+{% endfor %}

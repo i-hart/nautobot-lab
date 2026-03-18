@@ -1,0 +1,31 @@
+{# ── FortiGate: Service Objects & Groups ──────────────────────── #}
+
+{% for svc in device.fw_service_objects %}
+config firewall service custom
+    edit "{{ svc.name }}"
+{% if svc.protocol | lower == "tcp" %}
+        set protocol TCP/UDP/SCTP
+        set tcp-portrange {{ svc.port }}
+{% elif svc.protocol | lower == "udp" %}
+        set protocol TCP/UDP/SCTP
+        set udp-portrange {{ svc.port }}
+{% elif svc.protocol | lower == "icmp" %}
+        set protocol ICMP
+{% else %}
+        set protocol IP
+{% endif %}
+{% if svc.description %}
+        set comment "{{ svc.description }}"
+{% endif %}
+    next
+end
+{% endfor %}
+
+{% for grp in device.fw_service_object_groups %}
+config firewall service group
+    edit "{{ grp.name }}"
+        set member {% for m in grp.service_objects %}"{{ m.name }}" {% endfor %}
+
+    next
+end
+{% endfor %}

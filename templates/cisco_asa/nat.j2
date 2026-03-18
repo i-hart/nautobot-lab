@@ -1,0 +1,44 @@
+{# ── Cisco ASA: NAT Rules ─────────────────────────────────────── #}
+
+{% for nat in device.fw_nat_rules | sort(attribute='index') %}
+{% if nat.nat_type | lower == "static" %}
+! Static NAT: {{ nat.name }}
+{% if nat.original_source_addresses and nat.translated_source %}
+object network {{ nat.name }}_NAT
+ host {{ nat.original_source_addresses[0].name }}
+ nat ({{ nat.source_zones[0].name }},{{ nat.destination_zones[0].name }}) static {{ nat.translated_source.name }}
+{% if nat.description %}
+ description {{ nat.description }}
+{% endif %}
+{% endif %}
+!
+{% elif nat.nat_type | lower == "destination" %}
+! Destination NAT: {{ nat.name }}
+{% if nat.translated_destination %}
+object network {{ nat.name }}_REAL
+ host {{ nat.translated_destination.name }}
+!
+{% endif %}
+{% if nat.original_destination_addresses %}
+object network {{ nat.name }}_MAPPED
+ host {{ nat.original_destination_addresses[0].name }}
+ nat ({{ nat.destination_zones[0].name }},{{ nat.source_zones[0].name }}) static {{ nat.name }}_REAL{% if nat.translated_port %} service {{ nat.original_service.name }} {{ nat.translated_port }}{% endif %}
+
+{% if nat.description %}
+ description {{ nat.description }}
+{% endif %}
+{% endif %}
+!
+{% elif nat.nat_type | lower == "source" %}
+! Source NAT (PAT): {{ nat.name }}
+{% if nat.original_source_addresses and nat.translated_source %}
+object network {{ nat.name }}_SOURCE
+ subnet {{ nat.original_source_addresses[0].name }}
+ nat ({{ nat.source_zones[0].name }},{{ nat.destination_zones[0].name }}) dynamic {{ nat.translated_source.name }}
+{% if nat.description %}
+ description {{ nat.description }}
+{% endif %}
+{% endif %}
+!
+{% endif %}
+{% endfor %}

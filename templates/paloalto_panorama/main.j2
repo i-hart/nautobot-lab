@@ -1,0 +1,32 @@
+{# ================================================================
+   Palo Alto Panorama — Golden Config Entry Point
+   
+   Context comes from GraphQL query: firewall_policy_context
+   All firewall-models objects are under the `device` namespace.
+   
+   The control plane hierarchy determines the device-group:
+     device → vsys → logical_group → control_plane_system
+   ================================================================ #}
+
+{# Resolve device-group from the logical_group name (Panorama device-group) #}
+{% set device_group = device.vsys.logical_group.name | default("shared") %}
+{% set vsys_name    = device.vsys.name | default("vsys1") %}
+
+{# ── Address Objects ─────────────────────────────────────────── #}
+{% include "address.j2" %}
+
+{# ── Service Objects ─────────────────────────────────────────── #}
+{% include "services.j2" %}
+
+{# ── Application Objects ─────────────────────────────────────── #}
+{% if device.fw_application_objects %}
+{% include "applications.j2" %}
+{% endif %}
+
+{# ── Security Policy Rules ───────────────────────────────────── #}
+{% include "policies.j2" %}
+
+{# ── NAT Rules ───────────────────────────────────────────────── #}
+{% if device.fw_nat_rules %}
+{% include "nat.j2" %}
+{% endif %}

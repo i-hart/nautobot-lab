@@ -1,0 +1,24 @@
+{# ================================================================
+   FortiGate — Golden Config Entry Point
+
+   Context comes from GraphQL query: firewall_policy_context
+   VDOM is resolved from the vsys model if present.
+   ================================================================ #}
+
+{% set vdom = device.vsys.name | default("root") %}
+
+{% if vdom != "root" %}
+config vdom
+    edit {{ vdom }}
+end
+{% endif %}
+
+{% include "address.j2" %}
+
+{% include "services.j2" %}
+
+{% include "policies.j2" %}
+
+{% if device.fw_nat_rules %}
+{% include "nat.j2" %}
+{% endif %}

@@ -1,0 +1,80 @@
+{# ── Palo Alto Panorama: Security Policy Rules ────────────────── #}
+{# Rules are ordered by the `index` field from firewall-models.    #}
+
+{% for rule in device.fw_policy_rules | sort(attribute='index') %}
+{# --- zones --- #}
+{% for zone in rule.source_zones %}
+set device-group {{ device_group }} pre-rulebase security rules "{{ rule.name }}" from {{ zone.name }}
+{% endfor %}
+{% for zone in rule.destination_zones %}
+set device-group {{ device_group }} pre-rulebase security rules "{{ rule.name }}" to {{ zone.name }}
+{% endfor %}
+
+{# --- source addresses (prefer groups, fall back to individual) --- #}
+{% if rule.source_address_groups %}
+{% for grp in rule.source_address_groups %}
+set device-group {{ device_group }} pre-rulebase security rules "{{ rule.name }}" source {{ grp.name }}
+{% endfor %}
+{% elif rule.source_addresses %}
+{% for addr in rule.source_addresses %}
+set device-group {{ device_group }} pre-rulebase security rules "{{ rule.name }}" source {{ addr.name }}
+{% endfor %}
+{% else %}
+set device-group {{ device_group }} pre-rulebase security rules "{{ rule.name }}" source any
+{% endif %}
+
+{# --- destination addresses --- #}
+{% if rule.destination_address_groups %}
+{% for grp in rule.destination_address_groups %}
+set device-group {{ device_group }} pre-rulebase security rules "{{ rule.name }}" destination {{ grp.name }}
+{% endfor %}
+{% elif rule.destination_addresses %}
+{% for addr in rule.destination_addresses %}
+set device-group {{ device_group }} pre-rulebase security rules "{{ rule.name }}" destination {{ addr.name }}
+{% endfor %}
+{% else %}
+set device-group {{ device_group }} pre-rulebase security rules "{{ rule.name }}" destination any
+{% endif %}
+
+{# --- applications (App-ID) --- #}
+{% if rule.application_objects %}
+{% for app in rule.application_objects %}
+set device-group {{ device_group }} pre-rulebase security rules "{{ rule.name }}" application {{ app.name }}
+{% endfor %}
+set device-group {{ device_group }} pre-rulebase security rules "{{ rule.name }}" service application-default
+{% else %}
+set device-group {{ device_group }} pre-rulebase security rules "{{ rule.name }}" application any
+{# --- services (when no App-ID) --- #}
+{% for svc in rule.service_objects %}
+set device-group {{ device_group }} pre-rulebase security rules "{{ rule.name }}" service {{ svc.name }}
+{% endfor %}
+{% for grp in rule.service_groups %}
+set device-group {{ device_group }} pre-rulebase security rules "{{ rule.name }}" service {{ grp.name }}
+{% endfor %}
+{% endif %}
+
+{# --- action & logging --- #}
+set device-group {{ device_group }} pre-rulebase security rules "{{ rule.name }}" action {{ rule.action | lower }}
+{% if rule.log %}
+set device-group {{ device_group }} pre-rulebase security rules "{{ rule.name }}" log-end yes
+{% endif %}
+
+{# --- tags --- #}
+{% for tag in rule.tags %}
+set device-group {{ device_group }} pre-rulebase security rules "{{ rule.name }}" tag {{ tag.name }}
+{% endfor %}
+{% if rule.request_id %}
+set device-group {{ device_group }} pre-rulebase security rules "{{ rule.name }}" tag {{ rule.request_id }}
+{% endif %}
+
+{# --- description --- #}
+{% if rule.description %}
+set device-group {{ device_group }} pre-rulebase security rules "{{ rule.name }}" description "{{ rule.description }}"
+{% endif %}
+
+{# --- disabled --- #}
+{% if not rule.enabled %}
+set device-group {{ device_group }} pre-rulebase security rules "{{ rule.name }}" disabled yes
+{% endif %}
+
+{% endfor %}

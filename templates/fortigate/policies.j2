@@ -1,0 +1,60 @@
+{# ── FortiGate: Security Policies ─────────────────────────────── #}
+{# Policy IDs auto-increment from config_context.policy_id_start   #}
+{# or default to 1000.                                             #}
+{% set ns = namespace(pid=device.config_context.policy_id_start | default(1000) | int) %}
+
+{% for rule in device.fw_policy_rules | sort(attribute='index') %}
+config firewall policy
+    edit {{ ns.pid }}
+        set name "{{ rule.name }}"
+        set srcintf {% for z in rule.source_zones %}"{{ z.name }}" {% endfor %}
+
+        set dstintf {% for z in rule.destination_zones %}"{{ z.name }}" {% endfor %}
+
+{# --- source addresses --- #}
+{% if rule.source_address_groups %}
+        set srcaddr {% for g in rule.source_address_groups %}"{{ g.name }}" {% endfor %}
+
+{% elif rule.source_addresses %}
+        set srcaddr {% for a in rule.source_addresses %}"{{ a.name }}" {% endfor %}
+
+{% else %}
+        set srcaddr "all"
+{% endif %}
+
+{# --- destination addresses --- #}
+{% if rule.destination_address_groups %}
+        set dstaddr {% for g in rule.destination_address_groups %}"{{ g.name }}" {% endfor %}
+
+{% elif rule.destination_addresses %}
+        set dstaddr {% for a in rule.destination_addresses %}"{{ a.name }}" {% endfor %}
+
+{% else %}
+        set dstaddr "all"
+{% endif %}
+
+{# --- services --- #}
+{% if rule.service_objects or rule.service_groups %}
+        set service {% for s in rule.service_objects %}"{{ s.name }}" {% endfor %}{% for g in rule.service_groups %}"{{ g.name }}" {% endfor %}
+
+{% else %}
+        set service "ALL"
+{% endif %}
+
+        set action {{ "accept" if rule.action | lower == "allow" else "deny" }}
+        set schedule "always"
+{% if rule.log %}
+        set logtraffic all
+{% else %}
+        set logtraffic disable
+{% endif %}
+{% if rule.description %}
+        set comments "{{ rule.description }}"
+{% endif %}
+{% if not rule.enabled %}
+        set status disable
+{% endif %}
+    next
+end
+{% set ns.pid = ns.pid + 1 %}
+{% endfor %}

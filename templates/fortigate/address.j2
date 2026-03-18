@@ -1,0 +1,34 @@
+{# ── FortiGate: Address Objects & Groups ──────────────────────── #}
+
+{% for addr in device.fw_address_objects %}
+config firewall address
+    edit "{{ addr.name }}"
+{% if addr.fqdn %}
+        set type fqdn
+        set fqdn "{{ addr.fqdn }}"
+{% elif addr.ip_range %}
+        set type iprange
+        set start-ip {{ addr.ip_range.start_address }}
+        set end-ip {{ addr.ip_range.end_address }}
+{% elif addr.ip_address %}
+        set type ipmask
+        set subnet {{ addr.ip_address.host | ansible.utils.ipaddr('network/prefix') | default(addr.ip_address.host) }}
+{% endif %}
+{% if addr.description %}
+        set comment "{{ addr.description }}"
+{% endif %}
+    next
+end
+{% endfor %}
+
+{% for grp in device.fw_address_object_groups %}
+config firewall addrgrp
+    edit "{{ grp.name }}"
+        set member {% for m in grp.address_objects %}"{{ m.name }}" {% endfor %}
+
+{% if grp.description %}
+        set comment "{{ grp.description }}"
+{% endif %}
+    next
+end
+{% endfor %}
