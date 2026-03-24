@@ -1,32 +1,168 @@
 {# ================================================================
    Palo Alto Panorama — Golden Config Entry Point
-   
-   Context comes from GraphQL query: firewall_policy_context
-   All firewall-models objects are under the `device` namespace.
-   
-   The control plane hierarchy determines the device-group:
-     device → vsys → logical_group → control_plane_system
+
+   Data comes from GraphQL query: firewall_policy_context
+   Hierarchy: device → virtual_systems → logical_groups → objects
+
+   We iterate over each vsys/logical_group and render all objects
+   and rules scoped to that group.
    ================================================================ #}
 
-{# Resolve device-group from the logical_group name (Panorama device-group) #}
-{% set device_group = device.vsys.logical_group.name | default("shared") %}
-{% set vsys_name    = device.vsys.name | default("vsys1") %}
+{% for vsys in device.virtual_systems %}
+{% for lg in vsys.logical_groups %}
+{% set device_group = lg.name | default("shared") %}
 
-{# ── Address Objects ─────────────────────────────────────────── #}
-{% include "address.j2" %}
+{# ── Address Objects ─────────────────────────────────────── #}
+{% for addr in lg.address_objects %}
+{% if addr.fqdn %}
+set device-group {{ device_group }} address {{ addr.name }} fqdn {{ addr.fqdn.name }}
+{% elif addr.ip_range %}
+set device-group {{ device_group }} address {{ addr.name }} ip-range {{ addr.ip_range.start_address }}-{{ addr.ip_range.end_address }}
+{% elif addr.ip_address %}
+set device-group {{ device_group }} address {{ addr.name }} ip-netmask {{ addr.ip_address.host }}
+{% elif addr.prefix %}
+set device-group {{ device_group }} address {{ addr.name }} ip-netmask {{ addr.prefix.prefix }}
+{% endif %}
+{% if addr.description %}
+set device-group {{ device_group }} address {{ addr.name }} description "{{ addr.description }}"
+{% endif %}
+{% endfor %}
 
-{# ── Service Objects ─────────────────────────────────────────── #}
-{% include "services.j2" %}
+{# ── Address Groups ──────────────────────────────────────── #}
+{% for grp in lg.address_object_groups %}
+{% for member in grp.address_objects %}
+set device-group {{ device_group }} address-group {{ grp.name }} static {{ member.name }}
+{% endfor %}
+{% if grp.description %}
+set device-group {{ device_group }} address-group {{ grp.name }} description "{{ grp.description }}"
+{% endif %}
+{% endfor %}
 
-{# ── Application Objects ─────────────────────────────────────── #}
-{% if device.fw_application_objects %}
-{% include "applications.j2" %}
+{# ── Service Objects ─────────────────────────────────────── #}
+{% for svc in lg.service_objects %}
+set device-group {{ device_group }} service {{ svc.name }} protocol {{ svc.ip_protocol | lower }} port {{ svc.port }}
+{% if svc.description %}
+set device-group {{ device_group }} service {{ svc.name }} description "{{ svc.description }}"
+{% endif %}
+{% endfor %}
+
+{# ── Service Groups ──────────────────────────────────────── #}
+{% for grp in lg.service_object_groups %}
+{% for member in grp.service_objects %}
+set device-group {{ device_group }} service-group {{ grp.name }} members {{ member.name }}
+{% endfor %}
+{% endfor %}
+
+{# ── Application Objects ─────────────────────────────────── #}
+{% for app in lg.application_objects %}
+set device-group {{ device_group }} application {{ app.name }} category {{ app.category }}
+{% if app.subcategory %}
+set device-group {{ device_group }} application {{ app.name }} subcategory {{ app.subcategory }}
+{% endif %}
+{% if app.technology %}
+set device-group {{ device_group }} application {{ app.name }} technology {{ app.technology }}
+{% endif %}
+{% if app.risk %}
+set device-group {{ device_group }} application {{ app.name }} risk {{ app.risk }}
+{% endif %}
+{% if app.description %}
+set device-group {{ device_group }} application {{ app.name }} description "{{ app.description }}"
+{% endif %}
+{% endfor %}
+
+{# ── Application Groups ──────────────────────────────────── #}
+{% for grp in lg.application_object_groups %}
+{% for member in grp.application_objects %}
+set device-group {{ device_group }} application-group {{ grp.name }} members {{ member.name }}
+{% endfor %}
+{% endfor %}
+
+{# ── Security Policy Rules ───────────────────────────────── #}
+{% for rulebase in ["pre", "post"] %}
+{% set rules = lg.policy_rules | selectattr("rulebase", "equalto", rulebase) | sort(attribute="index") | list %}
+{% if rules %}
+{% set rb = "pre-rulebase" if rulebase == "pre" else "post-rulebase" %}
+
+{% for rule in rules %}
+{# zones (single FK) #}
+{% if rule.source_zone %}
+set device-group {{ device_group }} {{ rb }} security rules "{{ rule.name }}" from {{ rule.source_zone.name }}
+{% else %}
+set device-group {{ device_group }} {{ rb }} security rules "{{ rule.name }}" from any
+{% endif %}
+{% if rule.destination_zone %}
+set device-group {{ device_group }} {{ rb }} security rules "{{ rule.name }}" to {{ rule.destination_zone.name }}
+{% else %}
+set device-group {{ device_group }} {{ rb }} security rules "{{ rule.name }}" to any
 {% endif %}
 
-{# ── Security Policy Rules ───────────────────────────────────── #}
-{% include "policies.j2" %}
-
-{# ── NAT Rules ───────────────────────────────────────────────── #}
-{% if device.fw_nat_rules %}
-{% include "nat.j2" %}
+{# source addresses #}
+{% if rule.source_address_groups %}
+{% for grp in rule.source_address_groups %}
+set device-group {{ device_group }} {{ rb }} security rules "{{ rule.name }}" source {{ grp.name }}
+{% endfor %}
+{% elif rule.source_addresses %}
+{% for addr in rule.source_addresses %}
+set device-group {{ device_group }} {{ rb }} security rules "{{ rule.name }}" source {{ addr.name }}
+{% endfor %}
+{% else %}
+set device-group {{ device_group }} {{ rb }} security rules "{{ rule.name }}" source any
 {% endif %}
+
+{# destination addresses #}
+{% if rule.destination_address_groups %}
+{% for grp in rule.destination_address_groups %}
+set device-group {{ device_group }} {{ rb }} security rules "{{ rule.name }}" destination {{ grp.name }}
+{% endfor %}
+{% elif rule.destination_addresses %}
+{% for addr in rule.destination_addresses %}
+set device-group {{ device_group }} {{ rb }} security rules "{{ rule.name }}" destination {{ addr.name }}
+{% endfor %}
+{% else %}
+set device-group {{ device_group }} {{ rb }} security rules "{{ rule.name }}" destination any
+{% endif %}
+
+{# applications #}
+{% if rule.applications %}
+{% for app in rule.applications %}
+set device-group {{ device_group }} {{ rb }} security rules "{{ rule.name }}" application {{ app.name }}
+{% endfor %}
+set device-group {{ device_group }} {{ rb }} security rules "{{ rule.name }}" service application-default
+{% elif rule.application_groups %}
+{% for grp in rule.application_groups %}
+set device-group {{ device_group }} {{ rb }} security rules "{{ rule.name }}" application {{ grp.name }}
+{% endfor %}
+set device-group {{ device_group }} {{ rb }} security rules "{{ rule.name }}" service application-default
+{% else %}
+set device-group {{ device_group }} {{ rb }} security rules "{{ rule.name }}" application any
+{# services when no app-id #}
+{% for svc in rule.destination_services %}
+set device-group {{ device_group }} {{ rb }} security rules "{{ rule.name }}" service {{ svc.name }}
+{% endfor %}
+{% for grp in rule.destination_service_groups %}
+set device-group {{ device_group }} {{ rb }} security rules "{{ rule.name }}" service {{ grp.name }}
+{% endfor %}
+{% endif %}
+
+{# action & logging #}
+set device-group {{ device_group }} {{ rb }} security rules "{{ rule.name }}" action {{ rule.action | lower }}
+{% if rule.log %}
+set device-group {{ device_group }} {{ rb }} security rules "{{ rule.name }}" log-end yes
+{% endif %}
+
+{# tags #}
+{% for tag in rule.tags %}
+set device-group {{ device_group }} {{ rb }} security rules "{{ rule.name }}" tag {{ tag.name }}
+{% endfor %}
+
+{# description #}
+{% if rule.description %}
+set device-group {{ device_group }} {{ rb }} security rules "{{ rule.name }}" description "{{ rule.description }}"
+{% endif %}
+
+{% endfor %}
+{% endif %}
+{% endfor %}
+
+{% endfor %}
+{% endfor %
