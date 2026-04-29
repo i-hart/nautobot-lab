@@ -2,7 +2,7 @@
 _metadata:
   description: Group Definitions for device type firewall
   device-roles:
-    - slug: firewall
+    - slug: FIREWALL-LAB-AUTOMATION
   is_active: true
   name: firewall
   weight: 1000
