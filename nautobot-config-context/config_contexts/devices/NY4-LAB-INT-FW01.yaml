@@ -1,0 +1,100 @@
+---
+# ---------------------------------------------------------------------
+# Security Zones
+# ---------------------------------------------------------------------
+zone:
+  # Users/INSIDE
+  - enable-device-identification: true
+    enable-user-identification: true
+    name: INSIDE
+    network:
+      layer3:
+        - vlan.100
+
+  # OUTSIDE
+  - enable-user-identification: true
+    name: OUTSIDE
+    network:
+      layer3:
+        - vlan.900
+          loopback.1
+          loopback.20
+
+    # AZURE-DMZ
+  - enable-user-identification: true
+    name: azure-dmz
+    network:
+      layer3:
+        - vlan.450
+
+    # GAIN-DMZ
+  - enable-user-identification: false
+    name: gain-dmz
+    network:
+      layer3:
+        - vlan.460
+          vlan.470
+
+    # LB-DEV-DMZ
+  - enable-user-identification: false
+    name: lb-dev-dmz
+    network:
+      layer3:
+        - vlan.720
+
+    # LB-PROD-DMZ
+  - enable-user-identification: false
+    name: lb-prod-dmz
+    network:
+      layer3:
+        - vlan.710
+
+    # PASCAL-DMZ
+  - enable-user-identification: true
+    name: pascal-dmz
+    network:
+      layer3:
+        - vlan.810
+
+    # PRISMA-DMZ
+  - enable-user-identification: true
+    name: prisma-vpn
+    network:
+      layer3:
+        - tunnel.1
+
+    # PUBLIC-DMZ
+  - enable-user-identification: false
+    name: public-dmz
+    network:
+      layer3:
+        - vlan.810
+
+    # SD-WAN-DMZ
+  - enable-user-identification: true
+    name: sd-wan-dmz
+    network:
+      layer3:
+        - vlan.500
+
+    # SERVER-DEV-DMZ
+  - enable-user-identification: true
+    name: server-dev-dmz
+    network:
+      layer3:
+        - vlan.420
+
+    # SERVER-PROD-DMZ
+  - enable-user-identification: true
+    name: server-prod-dmz
+    network:
+      layer3:
+        - vlan.410
+
+    # VPN-DMZ
+  - enable-user-identification: false
+    name: vpn-dmz
+    network:
+      layer3:
+        - vlan.600
+          tunnel.600

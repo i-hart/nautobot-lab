@@ -1,0 +1,96 @@
+---
+_metadata:
+  name: panos
+  weight: 1000
+  description: Group Definitions for PAN-OS
+  is_active: true
+  platform:
+    - name: panos
+
+nautobot_plugin_nornir:
+  secret_access_type: REST
+
+
+#snmp:
+#  community:
+#    - name: paloaltonetworks
+#      role: read-only
+
+application_group:
+  - name: Sanctioned User Apps
+    members:
+      - gmail
+      - gmail-base
+      - gmail-chat
+      - gmail-video-chat
+      - gmail-drive
+      - google-app-engine
+      - google-base
+      - slack
+  - name: AD Svcs and Dependencies
+    members:
+      - active-directory
+      - kerberos
+      - ms-ds-smb
+      - ms-netlogon
+      - netbios-dg
+      - netbios-ms
+      - netbios-ss
+      - ldap
+      - ssl
+      - dns
+      - msrpc
+  - name: Infrastructure Services
+    members:
+      - ms-update
+      - ms-store
+      - dns
+      - yum
+  - name: Enterprise O365 Apps
+    members:
+      - web-browsing
+      - ssl
+      - ms-office365-base
+      - office365-enterprise-access
+  - name: Google Applications and Svcs
+    members:
+      - gmail
+      - gmail-drive
+      - google-analytics
+      - google-app-engine
+      - google-base
+      - google-cache
+      - google-calendar
+      - google-cloud-messaging
+      - google-cloud-storage
+      - google-docs
+      - google-certs
+      - google-hangouts
+      - google-keep
+      - google-location-service
+      - google-maps
+      - google-meet
+      - google-photos
+      - google-music
+      - google-play
+      - google-safebrowsing
+      - google-spaces
+      - google-talk
+      - google-translate
+      - google-update
+      - google-video
+      - youtube
+      - google-drive-web
+      - google-plus-base
+      - google-voice-actions
+  - name: Google App Dependencies
+    members:
+      - stun
+      - rtcp
+      - rtp-base
+      - vidyo
+      - jabber
+      - flash
+  - name: Unsanctioned Applications
+    members:
+      -

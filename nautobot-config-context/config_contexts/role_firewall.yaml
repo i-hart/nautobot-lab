@@ -1,0 +1,49 @@
+---
+_metadata:
+  description: Group Definitions for device type firewall
+  device-roles:
+    - slug: firewall
+  is_active: true
+  name: firewall
+  weight: 1000
+
+service:
+  - description: Service on TCP port 22
+    name: Service on TCP 22
+    protocol:
+      tcp:
+        override:
+          "no": null
+        port: 22
+    tag:
+      - Infrastructure
+  - description: Cockpit mgmt port
+    name: https-over-9090
+    protocol:
+      tcp:
+        override:
+          "no": null
+        port: 9090
+    tag:
+      - Infrastructure
+  - description: Panhandler Service Port
+    name: http-over-8080
+    protocol:
+      tcp:
+        override:
+          "no": null
+        port: 8080
+    tag:
+      - Infrastructure
+  - description: SSL over 636 as LDAPs (or it's supposed to be)
+    name: LDAPs
+    protocol:
+      tcp:
+        override:
+          "no": null
+        port: 636
+    tag:
+      - Infrastructure
+
+security_profile:
+  - name:

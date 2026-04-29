@@ -1,0 +1,28 @@
+---
+_metadata:
+  name: data-models
+  weight: 1000
+  description: Global Definitions.
+  is_active: true
+lldp: true
+dns:
+  - ip: 10.130.0.1
+    prefer: true
+  - ip: 10.130.0.3
+    prefer: false
+snmp:
+  community:
+    - name: stx-lab-public
+      role: RO
+    - name: stx-lab-private
+      role: RW
+    - name: stx
+      role: RO
+    - name: secure
+      role: RW
+  contact: James Harting
+  host:
+    - community: stonexnetops
+      ip: 10.104.0.99
+      version: 2c
+ location: StoneX NetOps Lab - LA3 | via FRB
